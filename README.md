@@ -11,6 +11,6 @@ in each competition's `main.py` file to determine exact `/data` structure, e.g.
   pd.read_csv('../data/titanic/test.csv')
   ```
 
-in `/titanic/main.py` means that competition expects the training data (from
-[kaggle](www.kaggle.com)) to reside in `/data/titanic/train.csv` (and similarly
-for the test data).
+  in `/titanic/main.py` means that competition expects the training data (from
+  [kaggle](www.kaggle.com)) to reside in `/data/titanic/train.csv` (and similarly
+  for the test data).
