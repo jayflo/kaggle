@@ -1,9 +1,10 @@
-"""
-Methods for cleaning the data.
-"""
+
+# Methods for cleaning the data.
+
 
 def clean(df):
     df['Age'] = df['Age'].fillna(df['Age'].median())
+    df['Fare'] = df['Fare'].fillna(df['Fare'].median())
 
     df.loc[df['Sex'] == 'male', 'Sex'] = 0
     df.loc[df['Sex'] == 'female', 'Sex'] = 1

@@ -1,10 +1,11 @@
-"""
-A starter script for working on the titanic survivor prediction competition.
-Written by following dataquest.com tutorial.
-"""
+
+# A starter script for working on the titanic survivor prediction competition.
+# Written by following dataquest.com tutorial.
+
 
 import pandas as pd
 import numpy as np
+
 from sklearn import cross_validation
 from sklearn.cross_validation import KFold
 from sklearn.linear_model import LinearRegression, LogisticRegression
@@ -14,25 +15,24 @@ from sklearn.feature_selection import SelectKBest, f_classif
 import cleandata as clndt
 import features as ftrs
 
-# load
-df = pd.read_csv('../data/titanic/train.csv')
-clndt.clean(df)
+# training data
 
-# test
-# df_test = pd.read_csv('../data/titanic/test.csv')
+df = pd.read_csv('./data/train.csv')
+clndt.clean(df)
 
 predictors = ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked']
 
 # linear regression
+
 alg = LinearRegression()
 kf = KFold(df.shape[0], n_folds=3, random_state=1)
 
 predictions = []
 for train, test in kf:
-    train_predictors = (df[predictors].iloc[train,:])
+    train_predictors = (df[predictors].iloc[train, :])
     train_target = df['Survived'].iloc[train]
     alg.fit(train_predictors, train_target)
-    test_predictions = alg.predict(df[predictors].iloc[test,:])
+    test_predictions = alg.predict(df[predictors].iloc[test, :])
     predictions.append(test_predictions)
 
 predictions = np.concatenate(predictions, axis=0)
@@ -47,6 +47,7 @@ accuracy = len(df.ix[df.Survived == predictions]) / len(df.index)
 print('Linear regression train accuracy = ', accuracy)
 
 # logistic regression
+
 alg = LogisticRegression(random_state=1)
 scores = cross_validation.cross_val_score(alg, df[predictors], df['Survived'], cv=3)
 print('Logistic regression train accuracy = ', scores.mean())
@@ -63,12 +64,14 @@ scores = cross_validation.cross_val_score(alg, df[predictors], df['Survived'], c
 print('Random forest train accuracy = ', scores.mean())
 
 # add features
-ftrs.family_size(df) # FamilySize
-ftrs.name_length(df) # NameLength
-ftrs.title(df) # Title
-ftrs.family_id(df) # FamilyId, requires FamilySize
+
+ftrs.family_size(df)  # FamilySize
+ftrs.name_length(df)  # NameLength
+ftrs.title(df)  # Title
+ftrs.family_id(df)  # FamilyId, requires FamilySize
 
 # select best features
+
 predictors = predictors + ['FamilySize', 'Title', 'FamilyId']
 selector = SelectKBest(f_classif, k=5)
 selector.fit(df[predictors], df['Survived'])
@@ -78,6 +81,7 @@ print(predictors, scores)
 print('\n')
 
 # improved random forest
+
 predictors = ['Pclass', 'Sex', 'Fare', 'Title']
 
 alg = RandomForestClassifier(
@@ -90,6 +94,7 @@ scores = cross_validation.cross_val_score(alg, df[predictors], df['Survived'], c
 print('Improved random forest train accuracy = ', scores.mean())
 
 # gradient boosting
+
 predictors_gbc = ['Pclass', 'Sex', 'Age', 'Fare', 'Embarked', 'FamilySize', 'Title', 'FamilyId']
 predictors_l = ['Pclass', 'Sex', 'Age', 'Fare', 'Embarked', 'FamilySize', 'Title']
 algos = [
@@ -109,8 +114,8 @@ for train, test in kf:
     full_test_predictions = []
 
     for alg, predictors in algos:
-        alg.fit(df[predictors].iloc[train,:], train_target)
-        test_predictions = alg.predict_proba(df[predictors].iloc[test,:].astype(float))[:,1]
+        alg.fit(df[predictors].iloc[train, :], train_target)
+        test_predictions = alg.predict_proba(df[predictors].iloc[test, :].astype(float))[:, 1]
         full_test_predictions.append(test_predictions)
 
     test_predictions = (full_test_predictions[0] + full_test_predictions[1]) / 2
@@ -120,10 +125,41 @@ for train, test in kf:
 
 predictions = np.concatenate(predictions, axis=0)
 accuracy = len(df.ix[df.Survived == predictions]) / len(df.index)
-print(accuracy)
+print('Gradient boosting accuracy:', accuracy)
+
+
+# score test data
+
+df = pd.read_csv('./data/train.csv')
+clndt.clean(df)
+ftrs.add_all(df)
+
+df_test = pd.read_csv('./data/test.csv')
+clndt.clean(df_test)
+ftrs.add_all(df_test)
+
+gb_clf = GradientBoostingClassifier(
+    random_state=1,
+    n_estimators=25,
+    max_depth=3
+)
+
+gb_clf.fit(df[predictors_gbc], df['Survived'])
+gb_predictions = gb_clf.predict_proba(df_test[predictors_gbc].astype(float))[:, 1]
+
+lr_clf = LogisticRegression(random_state=1)
+lr_clf.fit(df[predictors_l], df['Survived'])
+lr_predictions = lr_clf.predict_proba(df_test[predictors_l])[:, 1]
+
+test_predictions = (gb_predictions + lr_predictions) / 2
+test_predictions[test_predictions < 0.5] = 0
+test_predictions[test_predictions >= 0.5] = 1
 
 # kaggle submission
-# submission = pd.DataFrame({
-#     'PassengerId': df_test['PassengerId'],
-#     'Survived': test_predictions
-# })
+
+submission = pd.DataFrame({
+    'PassengerId': df_test['PassengerId'],
+    'Survived': test_predictions.astype(int)
+})
+
+submission.to_csv(path_or_buf='./submission.csv', index=False)

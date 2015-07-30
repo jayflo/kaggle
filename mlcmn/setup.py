@@ -1,6 +1,6 @@
 from setuptools import setup
 
-setup(name='kcmn',
+setup(name='mlcmn',
       version='0.1',
       description='Helpers for kaggle competitions',
       url='http://github.com/jayflo/kaggle',

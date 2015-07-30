@@ -1,5 +1,11 @@
+
+# python files
 *.pyc
+*.ipynb
 __pycache__
 
 # ignore data directory
 data/
+*.csv
+
+.ropeproject/

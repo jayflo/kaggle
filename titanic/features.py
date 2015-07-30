@@ -5,7 +5,17 @@ Methods for creating new features.
 import re
 import operator
 
-from kcmn.series import uniqValReplace
+from mlcmn.series import uniqValReplace
+
+family_id_mapping = {}
+
+
+def add_all(df):
+    family_size(df)
+    name_length(df)
+    title(df)
+    family_id(df)
+
 
 def family_size(df):
     df['FamilySize'] = df['SibSp'] + df['Parch']
@@ -19,7 +29,7 @@ def title(df):
     df['Title'], map = uniqValReplace(df['Name'].apply(__get_title))
     return map
 
-family_id_mapping = {}
+
 def family_id(df):
     family_id_mapping = {}
     family_ids = df.apply(__get_family_id, axis=1)
