@@ -1,11 +1,11 @@
-"""
-Methods for creating new features.
-"""
+
+# Methods for creating new features.
+
 
 import re
 import operator
 
-from mlcmn.series import uniqValReplace
+from mlcmn.feature_extraction import IntTransformer
 
 family_id_mapping = {}
 
@@ -26,8 +26,10 @@ def name_length(df):
 
 
 def title(df):
-    df['Title'], map = uniqValReplace(df['Name'].apply(__get_title))
-    return map
+    it = IntTransformer()
+    df['Title'] = it.fit_transform(df['Name'].apply(__get_title))
+
+    return it
 
 
 def family_id(df):
